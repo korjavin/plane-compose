@@ -18,11 +18,12 @@ services:
       DATABASE_URL: postgresql://plane:${POSTGRES_PASSWORD}@plane-db:5432/plane
       REDIS_URL: redis://plane-redis:6379/
       AMQP_URL: amqp://plane:${RABBITMQ_PASSWORD}@plane-mq:5672/plane
-      AWS_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: minioadmin
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
-      AWS_S3_BUCKET_NAME: plane-uploads
-      AWS_S3_ENDPOINT_URL: http://plane-minio:9000
+      USE_MINIO: ${USE_MINIO:-1}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-plane-uploads}
+      AWS_S3_ENDPOINT_URL: ${AWS_S3_ENDPOINT_URL:-http://plane-minio:9000}
       SECRET_KEY: ${SECRET_KEY}
     volumes:
       - ${DATA_PATH:-./data}/plane:/app/data
@@ -76,6 +77,8 @@ services:
     container_name: ${SERVICE_CONTAINER_NAME:-plane}-minio
     restart: unless-stopped
     command: server /export --console-address ":9090"
+    profiles:
+      - minio
     networks:
       - internal
     volumes:

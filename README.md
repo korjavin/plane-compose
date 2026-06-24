@@ -31,7 +31,8 @@ This repository contains a Portainer-ready Docker Compose configuration for [Pla
    - **Repository URL:** `https://github.com/korjavin/plane-compose.git`
    - **Branch:** `deploy` (Wait for the first GitHub Action run to create this branch, or manually run the deploy workflow).
    - **Compose path:** `docker-compose.yml`
-   - **Environment variables:** Copy values from `.env.example` and set strong secrets for `POSTGRES_PASSWORD`, `SECRET_KEY`, `MINIO_ROOT_PASSWORD`, and `RABBITMQ_PASSWORD`.
+   - **Environment variables:** Copy values from `.env.example` and set strong secrets for `POSTGRES_PASSWORD`, `SECRET_KEY`, `AWS_SECRET_ACCESS_KEY`, and `RABBITMQ_PASSWORD`.
+   - **Storage Profile:** To use the bundled MinIO, add the environment variable `COMPOSE_PROFILES=minio`. If using external S3/R2, leave it out.
    - **Webhook:** Enable "Git repository updates webhook" and copy the URL to your GitHub secret.
 
 4. **Trigger Deployment**
@@ -45,10 +46,11 @@ This repository contains a Portainer-ready Docker Compose configuration for [Pla
 | `SERVICE_HOST` | Domain for Traefik routing (e.g., `plane.example.com`) |
 | `TRAEFIK_NETWORK_NAME` | The name of your Traefik external network |
 | `TRAEFIK_CERTRESOLVER` | The Traefik certificate resolver name |
+| `COMPOSE_PROFILES` | Set to `minio` to start the bundled MinIO container |
 | `SECRET_KEY` | Plane Django secret key. Generate with `openssl rand -hex 32` |
 | `POSTGRES_PASSWORD` | PostgreSQL Database password |
 | `RABBITMQ_PASSWORD` | RabbitMQ AMQP password |
-| `MINIO_ROOT_PASSWORD` | MinIO Storage root password |
+| `AWS_SECRET_ACCESS_KEY` | Secret Key for S3/MinIO. Also sets `MINIO_ROOT_PASSWORD` for internal MinIO |
 
 ## Updates
 
