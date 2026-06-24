@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  plane:
+    image: ${SERVICE_IMAGE:-ghcr.io/korjavin/plane-vendor:latest}
+    container_name: ${SERVICE_CONTAINER_NAME:-plane}
+    restart: unless-stopped
+    depends_on:
+      - plane-db
+      - plane-redis
+      - plane-mq
+      - plane-minio
+    networks:
+      - internal
+      - traefik_network
+    environment:
+      DOMAIN_NAME: ${SERVICE_HOST}
+      DATABASE_URL: postgresql://plane:${POSTGRES_PASSWORD}@plane-db:5432/plane
+      REDIS_URL: redis://plane-redis:6379/
+      AMQP_URL: amqp://plane:${RABBITMQ_PASSWORD}@plane-mq:5672/plane
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      AWS_S3_BUCKET_NAME: plane-uploads
+      AWS_S3_ENDPOINT_URL: http://plane-minio:9000
+      SECRET_KEY: ${SECRET_KEY}
+    volumes:
+      - ${DATA_PATH:-./data}/plane:/app/data
+      - ${DATA_PATH:-./data}/logs:/app/logs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK_NAME:-traefik_default}"
+      - "traefik.http.routers.plane.rule=Host(`${SERVICE_HOST}`)"
+      - "traefik.http.routers.plane.entrypoints=websecure"
+      - "traefik.http.routers.plane.tls.certresolver=${TRAEFIK_CERTRESOLVER:-myresolver}"
+      - "traefik.http.services.plane.loadbalancer.server.port=80"
+
+  plane-db:
+    image: postgres:15-alpine
+    container_name: ${SERVICE_CONTAINER_NAME:-plane}-db
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - plane-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: plane
+      POSTGRES_USER: plane
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+  plane-redis:
+    image: valkey/valkey:7.2.5-alpine
+    container_name: ${SERVICE_CONTAINER_NAME:-plane}-redis
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - plane-redis-data:/data
+
+  plane-mq:
+    image: rabbitmq:3-management-alpine
+    container_name: ${SERVICE_CONTAINER_NAME:-plane}-mq
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - plane-mq-data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: plane
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: plane
+
+  plane-minio:
+    image: minio/minio:latest
+    container_name: ${SERVICE_CONTAINER_NAME:-plane}-minio
+    restart: unless-stopped
+    command: server /export --console-address ":9090"
+    networks:
+      - internal
+    volumes:
+      - plane-minio-data:/export
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+networks:
+  internal:
+    name: ${INTERNAL_NETWORK_NAME:-plane_internal}
+  traefik_network:
+    external: true
+    name: ${TRAEFIK_NETWORK_NAME:-traefik_default}
+
+volumes:
+  plane-db-data:
+  plane-redis-data:
+  plane-mq-data:
+  plane-minio-data:
