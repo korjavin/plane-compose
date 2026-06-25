@@ -52,6 +52,29 @@ This repository contains a Portainer-ready Docker Compose configuration for [Pla
 | `RABBITMQ_PASSWORD` | RabbitMQ AMQP password |
 | `AWS_SECRET_ACCESS_KEY` | Secret Key for S3/MinIO. Also sets `MINIO_ROOT_PASSWORD` for internal MinIO |
 
+## AI Integration (MCP Server)
+
+Plane provides an official Model Context Protocol (MCP) server that allows AI assistants (like Claude) to directly interact with your workspace to manage projects, issues, cycles, and more.
+
+If you are using **Claude Desktop**, you can add the Plane MCP server to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "plane-self-hosted": {
+      "command": "npx",
+      "args": ["-y", "@makeplane/mcp-server"],
+      "env": {
+        "PLANE_API_URL": "https://plane.example.com/api",
+        "PLANE_API_KEY": "your-personal-access-token",
+        "PLANE_WORKSPACE_SLUG": "your-workspace-name"
+      }
+    }
+  }
+}
+```
+*Note: You can generate your Personal Access Token in Plane by going to your Profile settings in the bottom left corner.*
+
 ## Updates
 
 - To configure Plane or add environment variables, commit changes to `master` and push.
