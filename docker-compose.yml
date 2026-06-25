@@ -27,7 +27,6 @@ services:
       SECRET_KEY: ${SECRET_KEY}
     volumes:
       - ${DATA_PATH:-./data}/plane:/app/data
-      - ${DATA_PATH:-./data}/logs:/app/logs
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK_NAME:-traefik_default}"
